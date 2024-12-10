@@ -31,34 +31,29 @@ void solveSystemGauss(T& a, int n, int m) {
 			}
 			a[i][in] = 1;
 			};
-		auto make_direct_step = [&](int in) {
+		auto subtract_strings = [&](int in) {
+			long long size = 1LL * (n - 1) * (m - in - 1);
 #pragma omp parallel
 			{
+			int k, j;
 #pragma omp for
-				for (int k = i + 1; k < n; ++k) {
-					for (int j = in + 1; j < m; ++j) {
-						a[k][j] -= a[i][j] * a[k][in];
-					}
-					a[k][in] = 0;
+				for (long long buf = 0; buf < size; ++buf) {
+					k = buf / (m - in - 1);
+					if (k >= i) ++k;
+					j = buf % (m - in - 1) + in + 1;
+					a[k][j] -= a[i][j] * a[k][in];
 				}
-			}
-			};
-		auto make_reversed_step = [&](int in) {
-#pragma omp parallel
-			{
 #pragma omp for
-				for (int k = i - 1; k >= 0; --k) {
-					for (int j = in + 1; j < m; ++j) {
-						a[k][j] -= a[i][j] * a[k][in];
+				for (k = 0; k < n; ++k) {
+					if (k != i) {
+						a[k][in] = 0;
 					}
-					a[k][in] = 0;
 				}
 			}
 			};
 		int index = find_first_not_zero();
 		if (index >= m) continue;
 		divide_string(index);
-		make_direct_step(index);
-		make_reversed_step(index);
+		subtract_strings(index);
 	}
 }
